@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectlbotapi
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectlbotapi
+  template:
+    metadata:
+      labels:
+        app: kubectlbotapi
+    spec:
+      serviceAccountName: kubectlbot-sa
+      containers:
+        - name: kubectlbotapi
+          image: dev-harbor.dev.rph.int/michael.lucas/kubectlbotapi:latest
+          ports:
+            - name: http
+              containerPort: 80
+            - name: https
+              containerPort: 443
+          volumeMounts:
+            - mountPath: "/app/ssl"
+              name: tls-cert
+              readOnly: true
+          env:
+          ASPNETCORE_URLS=
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:80;https://+:443
+            - name: ASPNETCORE_Kestrel__Endpoints__HttpsInlineCertFile__Url
+              value: https://*:443
+            - name: ASPNETCORE_Kestrel__Endpoints__HttpsInlineCertFile__Certificate__Path
+              value: /app/ssl/wild.hpl.com.pfx
+            - name: ASPNETCORE_Kestrel__Endpoints__HttpsInlineCertFile__Certificate__Password
+              valueFrom:
+                secretKeyRef:
+                  name: wild-hpl-com-pfx-password
+                  key: password
+            - name: ASPNETCORE_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: kubectlbotapi-apikey
+                  key: apikey
+      volumes:
+        - name: tls-cert
+          secret:
+            secretName: wild-hpl-com-pfx
+      restartPolicy: Always
+---
+# Using NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubectlbotapi-nodeport
+  namespace: default
+spec:
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+      nodePort: 30100
+  selector:
+    app: kubectlbotapi
+  type: NodePort

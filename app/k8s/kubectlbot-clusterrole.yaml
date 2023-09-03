@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:kubectlbot
+rules:
+  # Needed to evict pods
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  # Needed to list pods by Node
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # Needed to cordon Nodes
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "patch", "watch", "list"]
+  # Needed to determine Pod owners
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list"]
+  # Needed to determine Pod owners
+  - apiGroups: ["extensions"]
+    resources: ["daemonsets", "replicasets"]
+    verbs: ["get", "list"]

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:  
+  name: kubectlbotapi-apikey
+type: Opaque
+data:
+  apikey: NDI0ZThkMjYtOGQwYi00NjY3LWJmNTEtNDNkMTgyY2MzYTA3
